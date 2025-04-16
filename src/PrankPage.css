@@ -1,0 +1,79 @@
+.prank-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffcc00;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    text-align: center;
+    overflow: hidden;
+  }
+  
+  .prank-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    max-width: 90%;
+    animation: bounce 0.5s infinite alternate;
+  }
+  
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+  }
+  
+  h1 {
+    color: #e74c3c;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+  }
+  
+  audio {
+    width: 100%;
+    margin: 1rem 0;
+  }
+  
+  .chicken-animation {
+    margin: 2rem 0;
+    font-size: 3rem;
+  }
+  
+  .chicken {
+    animation: dance 1s infinite;
+  }
+  
+  @keyframes dance {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+  }
+  
+  .music-notes {
+    margin-top: 1rem;
+    animation: float 2s infinite;
+  }
+  
+  @keyframes float {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-20px); opacity: 0; }
+  }
+  
+  .lock-message {
+    color: #e74c3c;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-top: 1rem;
+  }
+  
+  .warning {
+    background: #ffe6e6;
+    border-left: 4px solid #e74c3c;
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: left;
+    border-radius: 4px;
+  }

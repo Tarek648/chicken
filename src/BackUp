@@ -1,0 +1,218 @@
+import React, { useEffect, useState } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { format, addDays } from "date-fns";
+import "./ScheduleApp.css";
+
+// npm install @fullcalendar/react @fullcalendar/daygrid @fullcalendar/interaction date-fns
+
+export default function ScheduleApp() {
+  const [events, setEvents] = useState([]);
+  const [availableDates, setAvailableDates] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [appointmentTitle, setAppointmentTitle] = useState("");
+
+  // 🆕 For displaying appointment title modal
+  const [selectedEventTitle, setSelectedEventTitle] = useState(null);
+
+  const providers = [
+    { id: "1", name: "Dr. Tarek", color: "#4ECDC4" },
+    { id: "2", name: "Dr. Ali", color: "#6C63FF" }
+  ];
+
+  const TIME_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00"];
+
+  useEffect(() => {
+    const today = new Date();
+    const available = [];
+
+    for (let i = 0; i < 30; i++) {
+      const nextDate = addDays(today, i);
+      const formatted = format(nextDate, "yyyy-MM-dd");
+      available.push(formatted);
+    }
+
+    setAvailableDates(available);
+  }, []);
+
+  const getAvailableTimeSlots = (date, providerId) => {
+    const bookedTimes = events
+      .filter((e) => e.date === date && e.provider === providerId)
+      .map((e) => e.time);
+    return TIME_SLOTS.filter((time) => !bookedTimes.includes(time));
+  };
+
+  const handleDateClick = (arg) => {
+    const clickedDate = arg.date;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (clickedDate < today) return;
+
+    const formatted = format(clickedDate, "yyyy-MM-dd");
+    if (!availableDates.includes(formatted)) return;
+
+    setSelectedDate(formatted);
+    setSelectedProvider(null);
+    setShowBookingModal(true);
+  };
+
+  const handleBookAppointment = () => {
+    if (!selectedDate || !selectedProvider || !appointmentTitle) return;
+
+    const timeSlot = document.querySelector(
+      'input[name="timeSlot"]:checked'
+    )?.value;
+
+    if (!timeSlot) return;
+
+    const newEvent = {
+      id: `event-${Date.now()}`,
+      title: `With ${selectedProvider.name} at ${timeSlot}`, // 🆕 Store the real appointment title only
+      appointmentTitle: appointmentTitle, // ✅ Store the real title
+      date: selectedDate,
+      time: timeSlot,
+      provider: selectedProvider.id,
+      color: selectedProvider.color,
+      textColor: "#FFFFFF"
+    };
+
+    setEvents((prev) => [...prev, newEvent]);
+    setShowBookingModal(false);
+    setAppointmentTitle("");
+  };
+
+  // 🆕 When clicking event on calendar
+  const handleEventClick = (info) => {
+    setSelectedEventTitle(info.event.extendedProps.appointmentTitle); // ✅ Get the real title
+  };
+
+  return (
+    <div className="schedule-app">
+      <div className="calendar-container">
+        <div className="calendar-wrapper">
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            dateClick={handleDateClick}
+            events={events}
+            eventClick={handleEventClick} // 🆕
+            height="auto"
+            headerToolbar={{
+              left: "prev",
+              center: "title",
+              right: "next"
+            }}
+            dayHeaderClassNames="fc-day-header"
+            dayCellClassNames="fc-day-cell"
+            eventClassNames="fc-event"
+            validRange={{
+              start: new Date(),
+              end: addDays(new Date(), 30)
+            }}
+          />
+        </div>
+      </div>
+
+      {showBookingModal && (
+        <div className="booking-modal">
+          <div className="modal-content">
+            <button
+              className="close-button"
+              onClick={() => setShowBookingModal(false)}
+            >
+              &times;
+            </button>
+            <h2>Book Appointment for {selectedDate}</h2>
+
+            <div className="provider-selection">
+              <h3>
+                Select Provider:
+                {selectedProvider && (
+                  <span className="selected-provider-name">
+                    {" "}
+                    {selectedProvider.name}
+                  </span>
+                )}
+              </h3>
+
+              <div className="providers-grid">
+                {providers.map((provider) => (
+                  <div
+                    key={provider.id}
+                    className={`provider-card ${
+                      selectedProvider?.id === provider.id ? "selected" : ""
+                    }`}
+                    onClick={() => setSelectedProvider(provider)}
+                    style={{ borderColor: provider.color }}
+                  >
+                    <div
+                      className="provider-color"
+                      style={{ backgroundColor: provider.color }}
+                    ></div>
+                    <h4>{provider.name}</h4>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {selectedProvider && (
+              <div className="time-selection">
+                <h3>Available Time Slots:</h3>
+                <div className="time-slots-grid">
+                  {getAvailableTimeSlots(
+                    selectedDate,
+                    selectedProvider.id
+                  ).map((time) => (
+                    <label key={time} className="time-slot">
+                      <input type="radio" name="timeSlot" value={time} />
+                      <span>{time}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="appointment-details">
+              <h3>Appointment Details:</h3>
+              <input
+                type="text"
+                placeholder="Enter appointment title"
+                value={appointmentTitle}
+                onChange={(e) => setAppointmentTitle(e.target.value)}
+                required
+              />
+            </div>
+
+            <button
+              className="book-button"
+              onClick={handleBookAppointment}
+              disabled={!selectedProvider || !appointmentTitle}
+            >
+              Confirm Appointment
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 Event Click Modal */}
+      {selectedEventTitle && (
+        <div className="event-modal">
+          <div className="modal-content">
+            <button
+              className="close-button"
+              onClick={() => setSelectedEventTitle(null)}
+            >
+              &times;
+            </button>
+            <h2>Appointment Title</h2>
+            <p>{selectedEventTitle}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
